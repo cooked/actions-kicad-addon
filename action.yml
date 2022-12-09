@@ -43,7 +43,8 @@ runs:
       run: |
         echo "PACKAGE_NAME=${{ github.event.repository.name }}-pcm.zip" >> $GITHUB_ENV
         echo "DL_URL=${{github.server_url}}/${{github.repository}}/releases/download" >> $GITHUB_ENV
-
+      shell: bash
+      
     # TODO: here we should let the user pick files and folders to add to plugins and resources
     - name: Prepare plugin folders
       run: |
