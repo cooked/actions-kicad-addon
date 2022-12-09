@@ -5,40 +5,71 @@ name: 'KiCad publish plugin'
 description: 'Automated workflow to publish a plugin to the official KiCad repository'
 
 inputs:
-  who-to-greet:  # id of input
-    description: 'Who to greet'
-    required: true
-    default: 'World'
-  interval:
-    description: 'number of minutes from the current time that should be included for the check'
-    required: true
-  content_directory:
-    description: 'directory to search for .md files'
+  tag:
+    type: string
+    description: Tag to release
+    default: "v0.0.0"
+
+  files_plugins:
+    description: 'Files to put in the "plugins" folder'
     required: false
     default: './'
+  files_resources:
+    description: 'Files (icon) to put in the "resource" folder'
+    required: false
+    default: 'icon.png'
 
 outputs:
   time: # id of output
     description: 'The time we greeted you'
 
 runs:
-  
-  # using: 'node12'
-  # main: 'dist/index.js'
-  
-  #using: 'docker'
-  #image: 'Dockerfile'
-  #args:
-  #  - ${{ inputs.who-to-greet }}
-
   using: 'composite'
   steps:
-    - uses: actions/checkout@v3
-
-    - run: echo Hello ${{ inputs.who-to-greet }}.
-      shell: bash
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
     - run: echo "${{ github.action_path }}" >> $GITHUB_PATH
       shell: bash
     #- run: goodbye.sh
     #  shell: bash
+
+    # Get version
+
+    - run: echo "RELEASE_VERSION=${{inputs.tag}}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Set env
+      run: |
+        echo "PACKAGE_NAME=${{ github.event.repository.name }}-pcm.zip" >> $GITHUB_ENV
+        echo "DL_URL=${{github.server_url}}/${{github.repository}}/releases/download" >> $GITHUB_ENV
+
+    # TODO: here we should let the user pick files and folders to add to plugins and resources
+    - name: Prepare plugin folders
+      run: |
+        mkdir plugins resources
+        mv *.py *.png kimotor-project plugins
+        mv assets/icon.png resources
+        zip -r ${{env.PACKAGE_NAME}} plugins resources metadata.json
+      shell: bash
+
+    - name: Update metadata (package)
+      run: |
+        tmp=$(mktemp)
+        jq '.versions[0].download_url = "${{env.DL_URL}}/${{env.RELEASE_VERSION}}/${{env.PACKAGE_NAME}}"' metadata.json > "$tmp"
+        mv "$tmp" metadata.json
+      shell: bash
+
+    - name: Get statistics
+      run: |
+        echo "FILE_SHA=$(shasum -a 256 ${{env.PACKAGE_NAME}} | cut -d ' ' -f1)" >> $GITHUB_ENV
+        echo "FILE_SIZE=$(wc -c < ${{env.PACKAGE_NAME}})" >> $GITHUB_ENV
+        echo "FILE_SIZE_UC=$(unzip -l ${{env.PACKAGE_NAME}} | tail -1 | xargs | cut -d ' ' -f1)" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Update metadata (metadata repository)
+      run: |
+        tmp=$(mktemp)
+        jq '.versions[0] += {"download_sha256": "${{ env.FILE_SHA }}", "download_size": ${{ env.FILE_SIZE }}, "install_size": ${{ env.FILE_SIZE_UC }} }' metadata.json > "$tmp"
+        mv "$tmp" metadata.json
+      shell: bash
