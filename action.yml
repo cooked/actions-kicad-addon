@@ -1,0 +1,44 @@
+# Copyright 2022 Stefano Cottafavi <stefano.cottafavi@gmail.com>.
+# SPDX-License-Identifier: GPL-2.0-only
+
+name: 'KiCad publish plugin'
+description: 'Automated workflow to publish a plugin to the official KiCad repository'
+
+inputs:
+  who-to-greet:  # id of input
+    description: 'Who to greet'
+    required: true
+    default: 'World'
+  interval:
+    description: 'number of minutes from the current time that should be included for the check'
+    required: true
+  content_directory:
+    description: 'directory to search for .md files'
+    required: false
+    default: './'
+
+outputs:
+  time: # id of output
+    description: 'The time we greeted you'
+
+runs:
+  
+  # using: 'node12'
+  # main: 'dist/index.js'
+  
+  #using: 'docker'
+  #image: 'Dockerfile'
+  #args:
+  #  - ${{ inputs.who-to-greet }}
+
+  using: 'composite'
+  steps:
+    - uses: actions/checkout@v3
+
+    - run: echo Hello ${{ inputs.who-to-greet }}.
+      shell: bash
+
+    - run: echo "${{ github.action_path }}" >> $GITHUB_PATH
+      shell: bash
+    #- run: goodbye.sh
+    #  shell: bash
