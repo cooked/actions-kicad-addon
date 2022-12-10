@@ -29,6 +29,9 @@ inputs:
   gitlab_branch:
     description: 'GitLab branch'
     default: "${{ github.event.repository.name }}"
+  gitlab_folder:
+    description: 'GitLab folder'
+    default: "com.github.${{github.actor}}.${{github.event.repository.name}}"
   gitlab_token_name:
     description: 'GitLab token name'
     default: "github"
@@ -81,8 +84,16 @@ runs:
         jq '.versions[0] += {"download_sha256": "${{ env.FILE_SHA }}", "download_size": ${{ env.FILE_SIZE }}, "install_size": ${{ env.FILE_SIZE_UC }} }' metadata.json > "$tmp"
         mv "$tmp" metadata.json
       shell: bash
-    
+
+
     - name: Clone GitLab repository
       if: inputs.deploy == 'true'
-      run: echo "${{ inputs }}"
+      run: |
+        git clone https://${{inputs.gitlab_token_name}}:${{inputs.gitlab_token_secret}}@gitlab.com/${{inputs.gitlab_user}}/metadata.git --branch ${{inputs.gitlab_branch}}
+        cp metadata.json metadata/packages/${{inputs.gitlab_folder}}
+        cd metadata
+        git config user.name "${{github.actor}}""
+        git config user.email "${{github.actor}}@users.noreply.github.com"
+        git commit -am "updated metadata.json"
+        git push origin @
       shell: bash
