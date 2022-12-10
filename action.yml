@@ -76,9 +76,8 @@ runs:
     - name: Prepare metadata file
       # fill in root elements, then author, resources and versions
       run: |
-        jq '. + { name: "${{inputs.name}}", description: "${{inputs.desc}}", identifier: "${{inputs.identifier}}", type: "${{inputs.type}}", license: "${{inputs.license}}" }' metadata.json
-        jq '.versions[0] + {version: "${{inputs.version}}", status: "${{inputs.status}}", kicad_version: "${{inputs.kicad_version}}" }' metadata.json
-        jq '.versions[0] + {download_url: "${{github.server_url}}/${{github.repository}}/releases/download/v${{inputs.version}}/${{env.PACKAGE_NAME}}" }' metadata.json
+        jq '. + { name: "${{inputs.name}}", description: "${{inputs.desc}}", identifier: "${{inputs.identifier}}", type: "${{inputs.type}}", license: "${{inputs.license}}", \
+        versions[0].version: "${{inputs.version}} }' metadata.json
       shell: bash
 
     - name: Prepare and zip folders
