@@ -11,6 +11,7 @@ inputs:
     default: ${{github.event.repository.name}}
   desc:
     description: "Addon description (short)"
+    default: ""
   identifier:
     description: "Addon identifier"
     default: "com.github.${{github.actor}}.${{github.event.repository.name}}"
@@ -53,10 +54,10 @@ inputs:
     description: 'GitLab folder'
     default: "com.github.${{github.actor}}.${{github.event.repository.name}}"
   gitlab_name:
-    description: 'GitLab user name'
+    description: 'GitLab token name'
     default: "github"
   gitlab_token:
-    description: 'GitLab token'
+    description: 'GitLab token secret'
     default: ""
 
 runs:
