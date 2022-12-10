@@ -77,7 +77,6 @@ runs:
     - name: Prepare metadata file
       # fill in root elements, then author, resources and versions
       run: |
-        cp metadata_template.json metadata.json
         jq '. + { name: "${{inputs.name}}", description: "${{inputs.desc}}", identifier: "${{inputs.identifier}}", type: "${{inputs.type}}", license: "${{inputs.license}}" }' metadata.json
         jq '.versions[0] + {version: "${{inputs.version}}", status: "${{inputs.status}}", version: "${{inputs.version}}", kicad_version: "${{inputs.kicad_version}}" }' metadata.json
         jq '.versions[0] + {download_url: "${{github.server_url}}/${{github.repository}}/releases/download/v${{env.RELEASE_VERSION}}/${{env.PACKAGE_NAME}}" }' metadata.json
