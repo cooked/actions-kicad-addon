@@ -114,7 +114,7 @@ runs:
     - name: Update metadata (for metadata repository)
       if: inputs.deploy == 'true'
       run: |
-        jq '.versions[0].download_sha256 = "${{env.FILE_SHA}}" | .versions[0].download_size = ${{env.FILE_SIZE}} | .versions[0].install_size = ${{env.FILE_SIZE_UC}}' metadata.json
+        jq '.versions[0].download_sha256="${{env.FILE_SHA}}" | .versions[0].download_size=${{env.FILE_SIZE}} | .versions[0].install_size=${{env.FILE_SIZE_UC}}' metadata.json
       shell: bash
 
     - name: Push to GitLab repository
