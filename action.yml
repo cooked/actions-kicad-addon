@@ -78,11 +78,10 @@ runs:
     # Release (local stuff)
     - name: Prepare metadata file
       # fill in root elements, then author, resources and versions
-      run: >
-        jq '.name="${{inputs.name}}" | .description="${{inputs.desc}}" | .identifier="${{inputs.identifier}}" | .type="${{inputs.type}}" | .license="${{inputs.license}}" |
-        .author.name="${{inputs.author_name}}" | .maintainer.name="${{inputs.maintainer_name}}" | .resources.homepage="${{github.server_url}}/${{github.repository}}" |
-        .versions[0].version="${{inputs.version}}" | .versions[0].status="${{inputs.status}}" | .versions[0].kicad_version="${{inputs.kicad_version}}" |
-        .versions[0].download_url="${{github.server_url}}/${{github.repository}}/releases/download/v${{inputs.version}}/${{env.PACKAGE_NAME}}"' metadata.json
+      run: |
+        tmp=$(mktemp)
+        jq '.name="${{inputs.name}}" | .description="${{inputs.desc}}" | .identifier="${{inputs.identifier}}" | .type="${{inputs.type}}" | .license="${{inputs.license}}" | .author.name="${{inputs.author_name}}" | .maintainer.name="${{inputs.maintainer_name}}" | .resources.homepage="${{github.server_url}}/${{github.repository}}" | .versions[0].version="${{inputs.version}}" | .versions[0].status="${{inputs.status}}" | .versions[0].kicad_version="${{inputs.kicad_version}}" | .versions[0].download_url="${{github.server_url}}/${{github.repository}}/releases/download/v${{inputs.version}}/${{env.PACKAGE_NAME}}"' metadata.json > "$tmp"
+        mv "$tmp" metadata.json
       shell: bash
 
     - name: Prepare and zip folders
@@ -113,12 +112,10 @@ runs:
 
     - name: Update metadata (for metadata repository)
       if: inputs.deploy == 'true'
-      run: >
-        jq '.name="${{inputs.name}}" | .description="${{inputs.desc}}" | .identifier="${{inputs.identifier}}" | .type="${{inputs.type}}" | .license="${{inputs.license}}" |
-        .author.name="${{inputs.author_name}}" | .maintainer.name="${{inputs.maintainer_name}}" | .resources.homepage="${{github.server_url}}/${{github.repository}}" |
-        .versions[0].version="${{inputs.version}}" | .versions[0].status="${{inputs.status}}" | .versions[0].kicad_version="${{inputs.kicad_version}}" |
-        .versions[0].download_url="${{github.server_url}}/${{github.repository}}/releases/download/v${{inputs.version}}/${{env.PACKAGE_NAME}}" |
-        .versions[0].download_sha256="${{env.FILE_SHA}}" | .versions[0].download_size=${{env.FILE_SIZE}} | .versions[0].install_size=${{env.FILE_SIZE_UC}}' metadata.json
+      run: |
+        tmp=$(mktemp)
+        jq '.versions[0].download_sha256="${{env.FILE_SHA}}" | .versions[0].download_size=${{env.FILE_SIZE}} | .versions[0].install_size=${{env.FILE_SIZE_UC}}' metadata.json
+        mv "$tmp" metadata.json
       shell: bash
 
     - name: Push to GitLab repository
