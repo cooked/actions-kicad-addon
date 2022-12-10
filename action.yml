@@ -64,16 +64,6 @@ runs:
       shell: bash
 
 
-    # Create tag, if triggered manually
-    - name: Create Tag
-      if: github.event_name == 'workflow_dispatch'
-      uses: negz/create-tag@v1
-      with:
-        version: ${{ inputs.tag }}
-        message: "Tag created automatically"
-        #token: ${{ secrets.GITHUB_TOKEN }}
-
-
     # Release (local stuff)
     - name: Update metadata (package)
       run: |
