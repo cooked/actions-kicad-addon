@@ -114,7 +114,7 @@ runs:
       if: inputs.deploy == 'true'
       run: |
         tmp=$(mktemp)
-        jq '.versions[0].download_sha256="${{env.FILE_SHA}}" | .versions[0].download_size=${{env.FILE_SIZE}} | .versions[0].install_size=${{env.FILE_SIZE_UC}}' metadata.json
+        jq '.versions[0].download_sha256="${{env.FILE_SHA}}" | .versions[0].download_size=${{env.FILE_SIZE}} | .versions[0].install_size=${{env.FILE_SIZE_UC}}' metadata.json > "$tmp"
         mv "$tmp" metadata.json
       shell: bash
 
