@@ -105,7 +105,8 @@ runs:
         echo "FILE_SHA=$(shasum -a 256 ${{env.PACKAGE_NAME}} | cut -d ' ' -f1)" >> $GITHUB_ENV
         echo "FILE_SIZE=$(wc -c < ${{env.PACKAGE_NAME}})" >> $GITHUB_ENV
         echo "FILE_SIZE_UC=$(unzip -l ${{env.PACKAGE_NAME}} | tail -1 | xargs | cut -d ' ' -f1)" >> $GITHUB_ENV
-
+      shell: bash
+      
     - name: Update metadata (for metadata repository)
       if: inputs.deploy == 'true'
       run: |
