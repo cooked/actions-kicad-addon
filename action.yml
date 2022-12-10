@@ -39,10 +39,6 @@ inputs:
     description: 'GitLab token secret'
     default: "glpat-qyzaZ_s_FbqL6Rx2V2WG"
 
-outputs:
-  time: # id of output
-    description: 'The time we greeted you'
-
 runs:
   using: 'composite'
   steps:
@@ -92,7 +88,7 @@ runs:
         git clone https://${{inputs.gitlab_token_name}}:${{inputs.gitlab_token_secret}}@gitlab.com/${{inputs.gitlab_user}}/metadata.git --branch ${{inputs.gitlab_branch}}
         cp metadata.json metadata/packages/${{inputs.gitlab_folder}}
         cd metadata
-        git config user.name "${{github.actor}}""
+        git config user.name "${{github.actor}}"
         git config user.email "${{github.actor}}@users.noreply.github.com"
         git commit -am "updated metadata.json"
         git push origin @
