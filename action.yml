@@ -5,26 +5,46 @@ name: 'KiCad publish plugin'
 description: 'Publish a plugin to the official KiCad repository'
 
 inputs:
-  tag:
-    type: string
-    description: Tag to release
+  # addon metadata
+  name:
+    description: Addon name
+    default: ${{github.event.repository.name}}
+  desc:
+    description: "Addon description (short)"
+  identifier:
+    description: "Addon identifier"
+    default: "com.github.${{github.actor}}.${{github.event.repository.name}}"
+  type:
+    description: Addon (plugin, library, colortheme)
+    default: "plugin"
+  author_name: 
+    description: Addon author
+    default: "${{github.actor}}"
+  license:
+    description: Addon license
+    default: "GPL-2.0"
+  version:
+    description: Addon version number
     default: ""
+  kicad_version:
+    description: KiCad version number
+    default: "6.0"
+  status:
+    description: Addon status (stable, testing, development, deprecated, invalid)
+    default: "stable"
 
+  # actions parameters
   files:
     description: 'Plugin files (to move into "plugins" folder)'
-    required: false
     default: '*.py *.png'
   icon:
     description: 'Icon file'
-    required: false
     default: 'assets/icon.png'
   deploy:
-    type: boolean
     description: Deploy to KiCad repo
     default: false
   gitlab_user:
     description: 'GitLab username'
-    required: false
     default: "${{github.actor}}"
   gitlab_branch:
     description: 'GitLab branch'
@@ -32,9 +52,6 @@ inputs:
   gitlab_folder:
     description: 'GitLab folder'
     default: "com.github.${{github.actor}}.${{github.event.repository.name}}"
-
-  # TODO: replace with secrets
-  # https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/GitHub-Actions-Secrets-Example-Token-Tutorial
   gitlab_name:
     description: 'GitLab user name'
     default: "github"
@@ -47,15 +64,25 @@ runs:
   steps:
     - name: Set environment
       run: |
-        echo "RELEASE_VERSION=${{inputs.tag}}" >> $GITHUB_ENV
+        echo "RELEASE_VERSION=${{inputs.version}}" >> $GITHUB_ENV
         echo "PACKAGE_NAME=${{ github.event.repository.name }}-pcm.zip" >> $GITHUB_ENV
-        echo "${{ github.action_path }}" >> $GITHUB_PATH
       shell: bash
 
     - name: Checkout repository
       uses: actions/checkout@v3
     
-    - name: Prepare folders
+    
+    # Release (local stuff)
+    - name: Prepare metadata file
+      # fill in root elements, then author, resources and versions
+      run: |
+        cp metadata_template.json metadata.json
+        jq '. + { name: "${{inputs.name}}", description: "${{inputs.desc}}", identifier: "${{inputs.identifier}}", type: "${{inputs.type}}", license: "${{inputs.license}}" }' metadata.json
+        jq '.versions[0] + {version: "${{inputs.version}}", status: "${{inputs.status}}", version: "${{inputs.version}}", kicad_version: "${{inputs.kicad_version}}" }' metadata.json
+        jq '.versions[0] + {download_url: "${{github.server_url}}/${{github.repository}}/releases/download/v${{env.RELEASE_VERSION}}/${{env.PACKAGE_NAME}}" }' metadata.json
+      shell: bash
+
+    - name: Prepare and zip folders
       run: |
         mkdir plugins resources
         mv ${{inputs.files}} plugins
@@ -63,39 +90,22 @@ runs:
         zip -r ${{env.PACKAGE_NAME}} plugins resources metadata.json
       shell: bash
 
-
-    # Release (local stuff)
-    - name: Update metadata (package)
-      run: |
-        tmp=$(mktemp)
-        jq '.versions[0].download_url = "${{github.server_url}}/${{github.repository}}/releases/download/${{env.RELEASE_VERSION}}/${{env.PACKAGE_NAME}}"' metadata.json > "$tmp"
-        mv "$tmp" metadata.json
-      shell: bash
-
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{inputs.tag}}
+        tag_name: ${{inputs.version}}
         files: |
           ${{env.PACKAGE_NAME}}
           metadata.json
 
 
     # Deploy (remote stuff)
-    - name: Get statistics
+    - name: Update metadata (with stats for metadata repository)
       if: inputs.deploy == 'true'
       run: |
-        echo "FILE_SHA=$(shasum -a 256 ${{env.PACKAGE_NAME}} | cut -d ' ' -f1)" >> $GITHUB_ENV
-        echo "FILE_SIZE=$(wc -c < ${{env.PACKAGE_NAME}})" >> $GITHUB_ENV
-        echo "FILE_SIZE_UC=$(unzip -l ${{env.PACKAGE_NAME}} | tail -1 | xargs | cut -d ' ' -f1)" >> $GITHUB_ENV
-      shell: bash
-
-    - name: Update metadata (metadata repository)
-      if: inputs.deploy == 'true'
-      run: |
-        tmp=$(mktemp)
-        jq '.versions[0] += {"download_sha256": "${{ env.FILE_SHA }}", "download_size": ${{ env.FILE_SIZE }}, "install_size": ${{ env.FILE_SIZE_UC }} }' metadata.json > "$tmp"
-        mv "$tmp" metadata.json
+        jq '.versions[0] += {"download_sha256": "$(shasum -a 256 ${{env.PACKAGE_NAME}} | cut -d ' ' -f1)" }' metadata.json
+        jq '.versions[0] += {"download_size": $(wc -c < ${{env.PACKAGE_NAME}}) }' metadata.json
+        jq '.versions[0] += {"install_size": $(unzip -l ${{env.PACKAGE_NAME}} | tail -1 | xargs | cut -d ' ' -f1) }' metadata.json
       shell: bash
 
     - name: Push to GitLab repository
