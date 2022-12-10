@@ -80,7 +80,7 @@ runs:
       # fill in root elements, then author, resources and versions
       run: |
         tmp=$(mktemp)
-        jq '.name="${{inputs.name}}" | .description="${{inputs.desc}}" | .identifier="${{inputs.identifier}}" | .type="${{inputs.type}}" | .license="${{inputs.license}}" | .author.name="${{inputs.author_name}}" | .maintainer.name="${{inputs.maintainer_name}}" | .resources.homepage="${{github.server_url}}/${{github.repository}}" | .versions[0].version="${{inputs.version}}" | .versions[0].status="${{inputs.status}}" | .versions[0].kicad_version="${{inputs.kicad_version}}" | .versions[0].download_url="${{github.server_url}}/${{github.repository}}/releases/download/v${{inputs.version}}/${{env.PACKAGE_NAME}}"' metadata.json > "$tmp"
+        jq '.name="${{inputs.name}}" | .description="${{inputs.desc}}" | .identifier="${{inputs.identifier}}" | .type="${{inputs.type}}" | .license="${{inputs.license}}" | .author.name="${{inputs.author_name}}" | .author.contact.web="${{github.server_url}}/${{github.repository}}" | .maintainer.name="${{inputs.maintainer_name}}" | .maintainer.contact.web="${{github.server_url}}/${{github.repository}}" | .resources.homepage="${{github.server_url}}/${{github.repository}}" | .versions[0].version="${{inputs.version}}" | .versions[0].status="${{inputs.status}}" | .versions[0].kicad_version="${{inputs.kicad_version}}" | .versions[0].download_url="${{github.server_url}}/${{github.repository}}/releases/download/v${{inputs.version}}/${{env.PACKAGE_NAME}}"' metadata.json > "$tmp"
         mv "$tmp" metadata.json
       shell: bash
 
