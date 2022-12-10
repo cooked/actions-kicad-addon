@@ -37,12 +37,12 @@ inputs:
     default: "github"
   gitlab_token_secret:
     description: 'GitLab token secret'
-    default: "glpat-qyzaZ_s_FbqL6Rx2V2WG"
+    default: ""
 
 runs:
   using: 'composite'
   steps:
-    - name: Set env
+    - name: Set environment
       run: |
         echo "RELEASE_VERSION=${{inputs.tag}}" >> $GITHUB_ENV
         echo "PACKAGE_NAME=${{ github.event.repository.name }}-pcm.zip" >> $GITHUB_ENV
@@ -82,7 +82,7 @@ runs:
       shell: bash
 
 
-    - name: Clone GitLab repository
+    - name: Push to GitLab repository
       if: inputs.deploy == 'true'
       run: |
         git clone https://${{inputs.gitlab_token_name}}:${{inputs.gitlab_token_secret}}@gitlab.com/${{inputs.gitlab_user}}/metadata.git --branch ${{inputs.gitlab_branch}}
