@@ -102,9 +102,9 @@ runs:
     - name: Update metadata (with stats for metadata repository)
       if: inputs.deploy == 'true'
       run: |
-        SHA = "$(shasum -a 256 ${{env.PACKAGE_NAME}} | cut -d ' ' -f1)"
-        SIZE = $(wc -c < ${{env.PACKAGE_NAME}})
-        INSTALL = $(unzip -l ${{env.PACKAGE_NAME}} | tail -1 | xargs | cut -d ' ' -f1)
+        SHA="$(shasum -a 256 ${{env.PACKAGE_NAME}} | cut -d ' ' -f1)"
+        SIZE=$(wc -c < ${{env.PACKAGE_NAME}})
+        INSTALL=$(unzip -l ${{env.PACKAGE_NAME}} | tail -1 | xargs | cut -d ' ' -f1)
         jq '.versions[0].download_sha256 = ${SHA} | .versions[0].download_size = ${SIZE} | .versions[0].install_size = ${INSTALL}' metadata.json
       shell: bash
 
