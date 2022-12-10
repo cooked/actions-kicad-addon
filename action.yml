@@ -106,11 +106,11 @@ runs:
         echo "FILE_SIZE=$(wc -c < ${{env.PACKAGE_NAME}})" >> $GITHUB_ENV
         echo "FILE_SIZE_UC=$(unzip -l ${{env.PACKAGE_NAME}} | tail -1 | xargs | cut -d ' ' -f1)" >> $GITHUB_ENV
       shell: bash
-      
+
     - name: Update metadata (for metadata repository)
       if: inputs.deploy == 'true'
       run: |
-        jq '.versions[0].download_sha256 = ${{env.FILE_SHA}} | .versions[0].download_size = ${{env.FILE_SIZE}} | .versions[0].install_size = ${{env.FILE_SIZE.UC}}' metadata.json
+        jq '.versions[0].download_sha256 = ${{env.FILE_SHA}} | .versions[0].download_size = ${{env.FILE_SIZE}} | .versions[0].install_size = ${{env.FILE_SIZE_UC}}' metadata.json
       shell: bash
 
     - name: Push to GitLab repository
