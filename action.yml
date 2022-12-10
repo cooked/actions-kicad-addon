@@ -65,7 +65,6 @@ runs:
   steps:
     - name: Set environment
       run: |
-        echo "RELEASE_VERSION=${{inputs.version}}" >> $GITHUB_ENV
         echo "PACKAGE_NAME=${{ github.event.repository.name }}-pcm.zip" >> $GITHUB_ENV
       shell: bash
 
@@ -78,8 +77,8 @@ runs:
       # fill in root elements, then author, resources and versions
       run: |
         jq '. + { name: "${{inputs.name}}", description: "${{inputs.desc}}", identifier: "${{inputs.identifier}}", type: "${{inputs.type}}", license: "${{inputs.license}}" }' metadata.json
-        jq '.versions[0] + {version: "${{inputs.version}}", status: "${{inputs.status}}", version: "${{inputs.version}}", kicad_version: "${{inputs.kicad_version}}" }' metadata.json
-        jq '.versions[0] + {download_url: "${{github.server_url}}/${{github.repository}}/releases/download/v${{env.RELEASE_VERSION}}/${{env.PACKAGE_NAME}}" }' metadata.json
+        jq '.versions[0] + {version = "${{inputs.version}}", status = "${{inputs.status}}", kicad_version = "${{inputs.kicad_version}}" }' metadata.json
+        jq '.versions[0] + {download_url = "${{github.server_url}}/${{github.repository}}/releases/download/v${{inputs.version}}/${{env.PACKAGE_NAME}}" }' metadata.json
       shell: bash
 
     - name: Prepare and zip folders
@@ -93,7 +92,7 @@ runs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{inputs.version}}
+        tag_name: "v${{inputs.version}}"
         files: |
           ${{env.PACKAGE_NAME}}
           metadata.json
