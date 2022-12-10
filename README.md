@@ -5,18 +5,20 @@ TODO:
 
 ## Inputs
 
-## `who-to-greet`
+## `files`
 
 **Required** The name of the person to greet. Default `"World"`.
 
-## Outputs
+## `icon`
 
-## `time`
+Relative path of the plugin icon. Default `"assets/icon.png"`.
 
-The time we greeted you.
 
 ## Example usage
 
-uses: actions/hello-world-docker-action@v2
-with:
-  who-to-greet: 'Mona the Octocat'
+- name: KiCad stuff
+  uses: cooked/actions-kicad-plugin@master
+  with:
+    tag: 'v0.0.0'
+    deploy: true
+    gitlab_user: 'stefano.cottafavi'
