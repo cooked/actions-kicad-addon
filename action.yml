@@ -76,7 +76,7 @@ runs:
     - name: Prepare metadata file
       # fill in root elements, then author, resources and versions
       run: >
-        jq '.name: "${{inputs.name}}" | .description: "${{inputs.desc}}" | .identifier: "${{inputs.identifier}}" | .type: "${{inputs.type}}" | .license: "${{inputs.license}}" } | 
+        jq '.name: "${{inputs.name}}" | .description: "${{inputs.desc}}" | .identifier: "${{inputs.identifier}}" | .type: "${{inputs.type}}" | .license: "${{inputs.license}}" | 
         .versions[0].version: "${{inputs.version}}"' metadata.json
       shell: bash
 
