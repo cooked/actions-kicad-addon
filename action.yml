@@ -5,7 +5,7 @@ name: 'KiCad publish plugin'
 description: 'Publish a plugin to the official KiCad repository'
 
 inputs:
-  # addon metadata
+  # addon metadata (https://dev-docs.kicad.org/en/addons/)
   name:
     description: Addon name
     default: ${{github.event.repository.name}}
