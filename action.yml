@@ -99,13 +99,17 @@ runs:
 
 
     # Deploy (remote stuff)
-    - name: Update metadata (with stats for metadata repository)
+    - name: Get statistics
       if: inputs.deploy == 'true'
       run: |
-        SHA="$(shasum -a 256 ${{env.PACKAGE_NAME}} | cut -d ' ' -f1)"
-        SIZE=$(wc -c < ${{env.PACKAGE_NAME}})
-        INSTALL=$(unzip -l ${{env.PACKAGE_NAME}} | tail -1 | xargs | cut -d ' ' -f1)
-        jq '.versions[0].download_sha256 = ${{SHA}} | .versions[0].download_size = ${{SIZE}} | .versions[0].install_size = ${{INSTALL}}' metadata.json
+        echo "FILE_SHA=$(shasum -a 256 ${{env.PACKAGE_NAME}} | cut -d ' ' -f1)" >> $GITHUB_ENV
+        echo "FILE_SIZE=$(wc -c < ${{env.PACKAGE_NAME}})" >> $GITHUB_ENV
+        echo "FILE_SIZE_UC=$(unzip -l ${{env.PACKAGE_NAME}} | tail -1 | xargs | cut -d ' ' -f1)" >> $GITHUB_ENV
+
+    - name: Update metadata (for metadata repository)
+      if: inputs.deploy == 'true'
+      run: |
+        jq '.versions[0].download_sha256 = ${{env.FILE_SHA}} | .versions[0].download_size = ${{env.FILE_SIZE}} | .versions[0].install_size = ${{env.FILE_SIZE.UC}}' metadata.json
       shell: bash
 
     - name: Push to GitLab repository
