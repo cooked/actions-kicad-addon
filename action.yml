@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-only
 
 name: 'KiCad publish plugin'
-description: 'Automated workflow to publish a plugin to the official KiCad repository'
+description: 'Publish a plugin to the official KiCad repository'
 
 inputs:
   tag:
@@ -10,14 +10,31 @@ inputs:
     description: Tag to release
     default: "v0.0.0"
 
-  files_plugins:
-    description: 'Files to put in the "plugins" folder'
+  files:
+    description: 'Plugin files (to move into "plugins" folder)'
     required: false
-    default: './'
-  files_resources:
-    description: 'Files (icon) to put in the "resource" folder'
+    default: '*.py *.png'
+  icon:
+    description: 'Icon file'
     required: false
-    default: 'icon.png'
+    default: 'assets/icon.png'
+  deploy:
+    type: boolean
+    description: Deploy to KiCad repo
+    default: false
+  gitlab_user:
+    description: 'GitLab username'
+    required: false
+    default: "${{github.actor}}"
+  gitlab_branch:
+    description: 'GitLab branch'
+    default: "${{ github.event.repository.name }}"
+  gitlab_token_name:
+    description: 'GitLab token name'
+    default: "github"
+  gitlab_token_secret:
+    description: 'GitLab token secret'
+    default: "glpat-qyzaZ_s_FbqL6Rx2V2WG"
 
 outputs:
   time: # id of output
@@ -26,38 +43,28 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - run: echo "${{ github.action_path }}" >> $GITHUB_PATH
-      shell: bash
-    #- run: goodbye.sh
-    #  shell: bash
-
-    # Get version
-
-    - run: echo "RELEASE_VERSION=${{inputs.tag}}" >> $GITHUB_ENV
-      shell: bash
-
     - name: Set env
       run: |
+        echo "RELEASE_VERSION=${{inputs.tag}}" >> $GITHUB_ENV
         echo "PACKAGE_NAME=${{ github.event.repository.name }}-pcm.zip" >> $GITHUB_ENV
-        echo "DL_URL=${{github.server_url}}/${{github.repository}}/releases/download" >> $GITHUB_ENV
+        echo "${{ github.action_path }}" >> $GITHUB_PATH
       shell: bash
-      
-    # TODO: here we should let the user pick files and folders to add to plugins and resources
-    - name: Prepare plugin folders
+
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Prepare folders
       run: |
         mkdir plugins resources
-        mv *.py *.png kimotor-project plugins
-        mv assets/icon.png resources
+        mv ${{inputs.files}} plugins
+        mv ${{inputs.icon}} resources
         zip -r ${{env.PACKAGE_NAME}} plugins resources metadata.json
       shell: bash
 
     - name: Update metadata (package)
       run: |
         tmp=$(mktemp)
-        jq '.versions[0].download_url = "${{env.DL_URL}}/${{env.RELEASE_VERSION}}/${{env.PACKAGE_NAME}}"' metadata.json > "$tmp"
+        jq '.versions[0].download_url = "${{github.server_url}}/${{github.repository}}/releases/download/${{env.RELEASE_VERSION}}/${{env.PACKAGE_NAME}}"' metadata.json > "$tmp"
         mv "$tmp" metadata.json
       shell: bash
 
@@ -73,4 +80,9 @@ runs:
         tmp=$(mktemp)
         jq '.versions[0] += {"download_sha256": "${{ env.FILE_SHA }}", "download_size": ${{ env.FILE_SIZE }}, "install_size": ${{ env.FILE_SIZE_UC }} }' metadata.json > "$tmp"
         mv "$tmp" metadata.json
+      shell: bash
+    
+    - name: Clone GitLab repository
+      if: inputs.deploy == 'true'
+      run: echo "${{ inputs }}"
       shell: bash
