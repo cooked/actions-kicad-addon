@@ -71,7 +71,7 @@ runs:
       with:
         version: ${{ inputs.tag }}
         message: "Tag created automatically"
-        token: ${{ secrets.GITHUB_TOKEN }}
+        #token: ${{ secrets.GITHUB_TOKEN }}
 
 
     # Release (local stuff)
