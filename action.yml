@@ -8,7 +8,7 @@ inputs:
   tag:
     type: string
     description: Tag to release
-    default: "v0.0.0"
+    default: ""
 
   files:
     description: 'Plugin files (to move into "plugins" folder)'
@@ -32,11 +32,14 @@ inputs:
   gitlab_folder:
     description: 'GitLab folder'
     default: "com.github.${{github.actor}}.${{github.event.repository.name}}"
-  gitlab_token_name:
-    description: 'GitLab token name'
+
+  # TODO: replace with secrets
+  # https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/GitHub-Actions-Secrets-Example-Token-Tutorial
+  gitlab_name:
+    description: 'GitLab user name'
     default: "github"
-  gitlab_token_secret:
-    description: 'GitLab token secret'
+  gitlab_token:
+    description: 'GitLab token'
     default: ""
 
 runs:
@@ -60,6 +63,18 @@ runs:
         zip -r ${{env.PACKAGE_NAME}} plugins resources metadata.json
       shell: bash
 
+
+    # Create tag, if triggered manually
+    - name: Create Tag
+      if: github.event_name == 'workflow_dispatch'
+      uses: negz/create-tag@v1
+      with:
+        version: ${{ inputs.tag }}
+        message: "Tag created automatically"
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+
+    # Release (local stuff)
     - name: Update metadata (package)
       run: |
         tmp=$(mktemp)
@@ -67,7 +82,18 @@ runs:
         mv "$tmp" metadata.json
       shell: bash
 
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{inputs.tag}}
+        files: |
+          ${{env.PACKAGE_NAME}}
+          metadata.json
+
+
+    # Deploy (remote stuff)
     - name: Get statistics
+      if: inputs.deploy == 'true'
       run: |
         echo "FILE_SHA=$(shasum -a 256 ${{env.PACKAGE_NAME}} | cut -d ' ' -f1)" >> $GITHUB_ENV
         echo "FILE_SIZE=$(wc -c < ${{env.PACKAGE_NAME}})" >> $GITHUB_ENV
@@ -75,17 +101,17 @@ runs:
       shell: bash
 
     - name: Update metadata (metadata repository)
+      if: inputs.deploy == 'true'
       run: |
         tmp=$(mktemp)
         jq '.versions[0] += {"download_sha256": "${{ env.FILE_SHA }}", "download_size": ${{ env.FILE_SIZE }}, "install_size": ${{ env.FILE_SIZE_UC }} }' metadata.json > "$tmp"
         mv "$tmp" metadata.json
       shell: bash
 
-
     - name: Push to GitLab repository
       if: inputs.deploy == 'true'
       run: |
-        git clone https://${{inputs.gitlab_token_name}}:${{inputs.gitlab_token_secret}}@gitlab.com/${{inputs.gitlab_user}}/metadata.git --branch ${{inputs.gitlab_branch}}
+        git clone https://${{inputs.gitlab_name}}:${{inputs.gitlab_token}}@gitlab.com/${{inputs.gitlab_user}}/metadata.git --branch ${{inputs.gitlab_branch}}
         cp metadata.json metadata/packages/${{inputs.gitlab_folder}}
         cd metadata
         git config user.name "${{github.actor}}"
