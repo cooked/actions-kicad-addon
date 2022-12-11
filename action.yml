@@ -6,7 +6,7 @@ description: 'Publish a plugin to the official KiCad repository'
 
 branding:
   icon: 'box'
-  color: 'yeallow'
+  color: 'yellow'
   
 inputs:
   # addon metadata (https://dev-docs.kicad.org/en/addons/)
