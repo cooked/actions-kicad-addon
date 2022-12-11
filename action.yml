@@ -45,7 +45,7 @@ inputs:
     description: 'Icon file'
     default: 'assets/icon.png'
   deploy:
-    description: Deploy to KiCad repo
+    description: Deploy to KiCad repository
     default: false
   gitlab_user:
     description: 'GitLab username'
