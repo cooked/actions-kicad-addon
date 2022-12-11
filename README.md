@@ -1,4 +1,4 @@
-# actions-kicad-plugin
+# actions-kicad-addon
 GitHub action to release a KiCad plugin to the metadata repository 
 
 TODO:
