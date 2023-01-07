@@ -1,9 +1,13 @@
 # Copyright 2022 Stefano Cottafavi <stefano.cottafavi@gmail.com>.
 # SPDX-License-Identifier: GPL-2.0-only
 
-name: 'KiCad publish plugin'
-description: 'Publish a plugin to the official KiCad repository'
+name: 'Publish KiCad addon'
+description: 'Publish a KiCad addon to the official metadata repository'
 
+branding:
+  icon: 'box'
+  color: 'yellow'
+  
 inputs:
   # addon metadata (https://dev-docs.kicad.org/en/addons/)
   name:
