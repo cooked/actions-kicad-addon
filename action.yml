@@ -136,5 +136,6 @@ runs:
         git config user.name "${{github.actor}}"
         git config user.email "${{github.actor}}@users.noreply.github.com"
         git commit -am "updated metadata.json"
-        git push origin @
+      # see MR: https://docs.gitlab.com/ee/user/project/push_options.html
+        git push -o merge_request.create -o merge_request.remove_source_branch
       shell: bash
