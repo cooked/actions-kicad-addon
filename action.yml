@@ -137,5 +137,5 @@ runs:
         git config user.name "${{github.actor}}"
         git config user.email "${{github.actor}}@users.noreply.github.com"
         git commit -am "updated metadata.json"
-        git push -o merge_request.create -o merge_request.remove_source_branch origin @
+        git push -o merge_request.create -o merge_request.remove_source_branch -o merge_request.assign="github" origin @
       shell: bash
