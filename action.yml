@@ -57,19 +57,19 @@ inputs:
   gitlab_user:
     description: 'GitLab username'
     default: "${{github.actor}}"
+  gitlab_email:
+    description: 'GitLab user email'
+    default: "${{github.actor}}@users.noreply.github.com"
+  gitlab_token:
+    description: 'GitLab token secret'
+    default: ""
   gitlab_branch:
     description: 'GitLab branch'
     default: "${{ github.event.repository.name }}"
   gitlab_folder:
     description: 'GitLab folder'
     default: "com.github.${{github.actor}}.${{github.event.repository.name}}"
-  gitlab_name:
-    description: 'GitLab token name'
-    default: "github"
-  gitlab_token:
-    description: 'GitLab token secret'
-    default: ""
-
+  
 runs:
   using: 'composite'
   steps:
@@ -131,12 +131,12 @@ runs:
     - name: Push to GitLab repository
       if: inputs.deploy == 'true'
       run: |
-        git clone https://${{inputs.gitlab_name}}:${{inputs.gitlab_token}}@gitlab.com/${{inputs.gitlab_user}}/metadata.git --branch ${{inputs.gitlab_branch}}
+        git clone https://${{inputs.gitlab_user}}:${{inputs.gitlab_token}}@gitlab.com/${{inputs.gitlab_user}}/metadata.git --branch ${{inputs.gitlab_branch}}
         cd metadata
         mkdir -p packages/${{inputs.gitlab_folder}}
         cp ../metadata.json packages/${{inputs.gitlab_folder}}
-        git config user.name "${{github.actor}}"
-        git config user.email "${{github.actor}}@users.noreply.github.com"
+        git config user.name "${{inputs.gitlab_user}}"
+        git config user.email "${{inputs.gitlab_email}}"
         git commit -am "updated metadata.json"
         git push origin @
       shell: bash
