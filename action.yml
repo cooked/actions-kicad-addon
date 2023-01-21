@@ -131,7 +131,7 @@ runs:
         git clone https://${{inputs.gitlab_name}}:${{inputs.gitlab_token}}@gitlab.com/${{inputs.gitlab_user}}/metadata.git
         cd metadata
         git checkout -b ${{inputs.gitlab_branch}}
-        mkdir packages/${{inputs.gitlab_folder}}
+        mkdir -p packages/${{inputs.gitlab_folder}}
         cp ../metadata.json packages/${{inputs.gitlab_folder}}
         git config user.name "${{github.actor}}"
         git config user.email "${{github.actor}}@users.noreply.github.com"
