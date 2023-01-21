@@ -131,7 +131,7 @@ runs:
     - name: Push to GitLab repository
       if: inputs.deploy == 'true'
       run: |
-        git clone https://${{inputs.gitlab_user}}:${{inputs.gitlab_token}}@gitlab.com/${{inputs.gitlab_user}}/metadata.git --branch ${{inputs.gitlab_branch}}
+        git clone https://github:${{inputs.gitlab_token}}@gitlab.com/${{inputs.gitlab_user}}/metadata.git --branch ${{inputs.gitlab_branch}}
         cd metadata
         mkdir -p packages/${{inputs.gitlab_folder}}
         cp ../metadata.json packages/${{inputs.gitlab_folder}}
