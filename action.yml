@@ -126,16 +126,17 @@ runs:
       shell: bash
 
     # see MR: https://docs.gitlab.com/ee/user/project/push_options.html
+    # -o merge_request.create -o merge_request.remove_source_branch -o merge_request.assign="github"
+    # git checkout -b ${{inputs.gitlab_branch}}
     - name: Push to GitLab repository
       if: inputs.deploy == 'true'
       run: |
-        git clone https://${{inputs.gitlab_name}}:${{inputs.gitlab_token}}@gitlab.com/${{inputs.gitlab_user}}/metadata.git
+        git clone https://${{inputs.gitlab_name}}:${{inputs.gitlab_token}}@gitlab.com/${{inputs.gitlab_user}}/metadata.git --branch ${{inputs.gitlab_branch}}
         cd metadata
-        git checkout -b ${{inputs.gitlab_branch}}
         mkdir -p packages/${{inputs.gitlab_folder}}
         cp ../metadata.json packages/${{inputs.gitlab_folder}}
         git config user.name "${{github.actor}}"
         git config user.email "${{github.actor}}@users.noreply.github.com"
         git commit -am "updated metadata.json"
-        git push -o merge_request.create -o merge_request.remove_source_branch -o merge_request.assign="github" origin @
+        git push origin @
       shell: bash
